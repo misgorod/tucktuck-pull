@@ -2,6 +2,7 @@ package pull
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
@@ -17,35 +18,86 @@ type pullResponse struct {
 }
 
 type result struct {
-	Id              int
-	Title           string
-	Slug            string
+	Id              int `json:"id"`
+	Title           string `json:"title"`
+	Slug            string `json:"slug"`
 	PublicationDate int64 `json:"publication_date"`
-	Place           string
-	Description     string
-	Dates           interface{}
+	Place           place `json:"place"`
+	Description     string `json:"description"`
+	Dates           []date `json:"dates"`
 	BodyText        string `json:"body_text"`
-	Location        interface{}
-	Categories      []string
+	Location        location `json:"location"`
+	Categories      []string `json:"categories"`
 	TagLine         string `json:"tagline"`
 	AgeRestriction  int    `json:"age_restriction"`
-	Price           string
+	Price           string `json:"price"`
 	SsFree          bool `json:"is_free"`
-	Images          interface{}
+	Images          []image `json:"images"`
 	FavouritesCount int    `json:"favourites_count"`
 	CommentsCount   int    `json:"comments_count"`
 	SiteUrl         string `json:"site_url"`
 	ShortTitle      string `json:"short_title"`
-	Tags            []string
-	Participants    []string
+	Tags            []string `json:"tags"`
+	Participants    []string `json:"participants"`
 }
 
-type PullHandler struct{}
+type image struct {
+	Image string `json:"image"`
+	Source source `json:"source"`
+}
 
-func New(ctx context.Context) PullHandler {
+type source struct {
+	Link string `json:"link"`
+	Source string `json:"source"`
+}
+
+type place struct {
+	Id int `json:"id"`
+	Title string `json:"title"`
+	Slug string `json:"slug"`
+	Address string `json:"address"`
+	Phone string `json:"phone"`
+	IsStub bool `json:"is_stub"`
+	SiteUrl string `json:"site_url"`
+	Coordinates coordinates `json:"coords"`
+	Subway string `json:"subway"`
+	IsClosed bool `json:"is_closed"`
+	Location string `json:"location"`
+}
+
+type location struct {
+	Slug string `json:"slug"`
+	Name string `json:"name"`
+	Timezone string `json:"timezone"`
+	Coordinates coordinates `json:"coords"`
+	Language string `json:"language"`
+	Currency string `json:"currency"`
+}
+
+type coordinates struct {
+	Latitude  float64 `json:"lat"`
+	Longitude float64 `json:"lon"`
+}
+
+type date struct {
+	StartDate string `json:"start_date"`
+	StartTime string `json:"start_time"`
+	Start int64 `json:"start"`
+	EndDate string `json:"end_date"`
+	EndTime string `json:"end_time"`
+	End int64 `json:"end"`
+	IsContinuous bool `json:"is_continuous"`
+	IsEndless bool `json:"is_endless"`
+	IsStartless bool `json:"is_startless"`
+	Schedules []interface{}
+	UsePlaceSchedule bool `json:"use_place_schedule"`
+}
+
+type Handler struct{}
+
+func New(ctx context.Context) Handler {
 	go func() {
 		select {
-		// Listening for a cancellation event
 		case <-ctx.Done():
 			log.WithError(ctx.Err()).Error(" received cancel from external context")
 			return
@@ -61,16 +113,16 @@ func New(ctx context.Context) PullHandler {
 		if err != nil {
 			logger.WithError(err).Error("couldn't get response from kudago")
 		}
-		_, err = ioutil.ReadAll(response.Body)
+		body, err = ioutil.ReadAll(response.Body)
 		if err != nil {
 			logger.WithError(err).Error("couldn't read response from kudago")
 		}
-		//json.Unmarshal(body, )
+		json.Unmarshal(body, )
 
 	}()
-	return PullHandler{}
+	return Handler{}
 }
 
-func (p *PullHandler) Get(w http.ResponseWriter, r *http.Request) {
+func (p *Handler) Get(w http.ResponseWriter, r *http.Request) {
 
 }

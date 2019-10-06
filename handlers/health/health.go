@@ -1,15 +1,16 @@
 package health
 
 import (
+	"github.com/misgorod/tucktuck-pull/common"
 	"net/http"
 )
 
-type HealthHandler struct{}
+type Handler struct{}
 
-func New() HealthHandler {
-	return HealthHandler{}
+func New() Handler {
+	return Handler{}
 }
 
-func (h *HealthHandler) Get(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(200)
+func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
+	common.RespondJSON(r.Context(), w, http.StatusOK, "Ok")
 }
