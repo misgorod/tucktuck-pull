@@ -4,15 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/go-chi/chi/middleware"
-	"net/http"
 	log "github.com/sirupsen/logrus"
+	"net/http"
 )
 
 func RespondJSON(ctx context.Context, w http.ResponseWriter, status int, payload interface{}) {
-	logger := log.WithFields(log.Fields {
-			"request id": middleware.GetReqID(ctx),
-			"status": status,
-		},
+	logger := log.WithFields(log.Fields{
+		"request id": middleware.GetReqID(ctx),
+		"status":     status,
+	},
 	)
 	if status < 500 {
 		logger.Info()
