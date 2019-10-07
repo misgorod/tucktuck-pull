@@ -9,10 +9,12 @@ import (
 )
 
 func RespondJSON(ctx context.Context, w http.ResponseWriter, status int, payload interface{}) {
-	logger := log.WithFields(log.Fields{
-		"request id": middleware.GetReqID(ctx),
-		"status":     status,
-	},
+	logger := log.WithFields(
+		log.Fields{
+			"request_id": middleware.GetReqID(ctx),
+			"status":     status,
+			"payload":    payload,
+		},
 	)
 	if status < 500 {
 		logger.Info()

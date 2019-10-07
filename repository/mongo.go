@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/misgorod/tucktuck-pull/common"
 	"github.com/misgorod/tucktuck-pull/models"
+	log "github.com/sirupsen/logrus"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"time"
@@ -32,16 +34,39 @@ func New() (*Client, error) {
 	}, nil
 }
 
-func (c *Client) UpsertMany(ctx context.Context, data []interface{}) (models.UpsertResult, error) {
-	updateResult, err := c.InsertMany(ctx, data)
+func (c *Client) UpsertMany(ctx context.Context, results []models.Result) (models.UpsertResult, error) {
+	updateModels := make([]mongo.WriteModel, len(results))
+	for _, result := range results {
+		update, err := bson.Marshal(result)
+		if err != nil {
+			return models.UpsertResult{}, err
+		}
+		model := mongo.NewUpdateOneModel().
+			SetFilter(
+				bson.M{
+					"_id": result.Id,
+				},
+			).
+			SetUpdate(
+				bson.M{
+					"$set": update,
+				},
+			).
+			SetUpsert(true)
+		updateModels = append(updateModels, model)
+	}
+	bulkResult, err := c.BulkWrite(ctx, updateModels)
+	for _, model := range updateModels {
+		log.WithField("updateModels", fmt.Sprintf("%+v", model)).Info()
+	}
 	if err != nil {
 		return models.UpsertResult{}, err
 	}
 	return models.UpsertResult{
-		//MatchedCount:  updateResult.MatchedCount,
-		//ModifiedCount: updateResult.ModifiedCount,
-		//UpsertedCount: updateResult.UpsertedCount,
-		UpsertedID:    updateResult.InsertedIDs,
+		MatchedCount:  bulkResult.MatchedCount,
+		ModifiedCount: bulkResult.ModifiedCount,
+		UpsertedCount: bulkResult.UpsertedCount,
+		UpsertedID:    bulkResult.UpsertedIDs,
 		LastTime:      time.Now(),
 	}, nil
 }

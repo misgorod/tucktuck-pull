@@ -3,27 +3,27 @@ package models
 import "encoding/json"
 
 type Result struct {
-	Id              int           `json:"id" bson:"_id"`
-	Title           string        `json:"title" bson:"title"`
-	Slug            string        `json:"slug" bson:"slug"`
-	PublicationDate int64         `json:"publication_date" bson:"publication_date"`
-	Place           Place         `json:"place" bson:"place"`
-	Description     string        `json:"description" bson:"description"`
-	Dates           []Date        `json:"dates" bson:"dates"`
-	BodyText        string        `json:"body_text" bson:"body_text"`
-	Location        Location      `json:"location" bson:"location"`
-	Categories      []string      `json:"categories" bson:"categories"`
-	TagLine         string        `json:"tagline" bson:"tagline"`
-	AgeRestriction  json.Number   `json:"age_restriction" bson:"age_restriction"`
-	Price           string        `json:"price" bson:"price"`
-	SsFree          bool          `json:"is_free" bson:"is_free"`
-	Images          []Image       `json:"images" bson:"images"`
-	FavouritesCount int           `json:"favourites_count" bson:"favourites_count"`
-	CommentsCount   int           `json:"comments_count" bson:"comments_count"`
-	SiteUrl         string        `json:"site_url" bson:"site_url"`
-	ShortTitle      string        `json:"short_title" bson:"short_title"`
-	Tags            []string      `json:"tags" bson:"tags"`
-	Participants    []Participant `json:"participants" bson:"participants"`
+	Id              int              `json:"id" bson:"_id"`
+	Title           string           `json:"title" bson:"title"`
+	Slug            string           `json:"slug" bson:"slug"`
+	PublicationDate int64            `json:"publication_date" bson:"publication_date"`
+	Place           *Place           `json:"place" bson:"place"`
+	Description     string           `json:"description" bson:"description"`
+	Dates           []Date           `json:"dates" bson:"dates"`
+	BodyText        string           `json:"body_text" bson:"body_text"`
+	Location        Location         `json:"location" bson:"location"`
+	Categories      []string         `json:"categories" bson:"categories"`
+	TagLine         string           `json:"tagline" bson:"tagline"`
+	AgeRestriction  *json.RawMessage `json:"age_restriction" bson:"age_restriction"`
+	Price           string           `json:"price" bson:"price"`
+	SsFree          bool             `json:"is_free" bson:"is_free"`
+	Images          []Image          `json:"images" bson:"images"`
+	FavouritesCount int              `json:"favourites_count" bson:"favourites_count"`
+	CommentsCount   int              `json:"comments_count" bson:"comments_count"`
+	SiteUrl         string           `json:"site_url" bson:"site_url"`
+	ShortTitle      string           `json:"short_title" bson:"short_title"`
+	Tags            []string         `json:"tags" bson:"tags"`
+	Participants    []Participant    `json:"participants" bson:"participants"`
 }
 
 type Participant struct {
@@ -93,15 +93,15 @@ type Coordinates struct {
 }
 
 type Date struct {
-	StartDate    string `json:"start_date" bson:"start_date"`
-	StartTime    string `json:"start_time" bson:"start_time"`
-	Start        int64  `json:"start" bson:"start"`
-	EndDate      string `json:"end_date" bson:"end_date"`
-	EndTime      string `json:"end_time" bson:"end_time"`
-	End          int64  `json:"end" bson:"end"`
-	IsContinuous bool   `json:"is_continuous" bson:"is_continuous"`
-	IsEndless    bool   `json:"is_endless" bson:"is_endless"`
-	IsStartless  bool   `json:"is_startless" bson:"is_startless"`
+	StartDate    *string `json:"start_date" bson:"start_date"`
+	StartTime    *string `json:"start_time" bson:"start_time"`
+	Start        int64   `json:"start" bson:"start"`
+	EndDate      *string `json:"end_date" bson:"end_date"`
+	EndTime      *string `json:"end_time" bson:"end_time"`
+	End          int64   `json:"end" bson:"end"`
+	IsContinuous bool    `json:"is_continuous" bson:"is_continuous"`
+	IsEndless    bool    `json:"is_endless" bson:"is_endless"`
+	IsStartless  bool    `json:"is_startless" bson:"is_startless"`
 	//Schedules []interface{}
 	UsePlaceSchedule bool `json:"use_place_schedule" bson:"use_place_schedule"`
 }

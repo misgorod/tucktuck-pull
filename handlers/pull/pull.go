@@ -2,6 +2,7 @@ package pull
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"github.com/misgorod/tucktuck-pull/common"
@@ -16,7 +17,7 @@ import (
 type pullResponse struct {
 	Count    int             `json:"count"`
 	Next     string          `json:"next"`
-	Previous string          `json:"previous"`
+	Previous *string         `json:"previous"`
 	Results  []models.Result `json:"results"`
 }
 
@@ -36,7 +37,11 @@ type InsertResult struct {
 func (h *Handler) makeRequest(ctx context.Context, logger *log.Logger) error {
 	actualSince := time.Now().Unix()
 	url := fmt.Sprintf("https://kudago.com/public-api/v1.4/events/?fields=id,publication_date,dates,title,short_title,slug,place,description,body_text,location,categories,tagline,age_restriction,price,is_free,images,favorites_count,comments_count,site_url,tags,participants&expand=images,place,location,dates,participants&text_format=text&location=msk&actual_since=%v", actualSince)
-	response, err := http.Get(url)
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
+	response, err := client.Get(url)
 	if err != nil {
 		return err
 	}
@@ -49,11 +54,7 @@ func (h *Handler) makeRequest(ctx context.Context, logger *log.Logger) error {
 	if err != nil {
 		return err
 	}
-	data := make([]interface{}, len(pullResponse.Results))
-	for _, result := range pullResponse.Results {
-		data = append(data, result)
-	}
-	upsertResult, err := h.client.UpsertMany(ctx, data)
+	upsertResult, err := h.client.UpsertMany(ctx, pullResponse.Results)
 	if err != nil {
 		return err
 	}
