@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -14,12 +13,11 @@ import (
 )
 
 func main() {
-	ctx, _ := context.WithCancel(context.Background())
 	client, err := repository.New()
 	if err != nil {
 		log.WithError(err).Fatal("couldn't connect to database")
 	}
-	pullHandler := pull.New(ctx, client)
+	pullHandler := pull.New(client)
 	healthHandler := health.New()
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID, middleware.Logger, middleware.Recoverer)

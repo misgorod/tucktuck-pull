@@ -41,47 +41,44 @@ func (h *Handler) makeRequest(ctx context.Context, logger *log.Logger) error {
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 	client := &http.Client{Transport: tr}
-	response, err := client.Get(url)
-	if err != nil {
-		return err
+	for url != "" {
+		response, err := client.Get(url)
+		if err != nil {
+			return err
+		}
+		body, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			return err
+		}
+		var pullResponse pullResponse
+		err = json.Unmarshal(body, &pullResponse)
+		if err != nil {
+			return err
+		}
+		upsertResult, err := h.client.UpsertMany(ctx, pullResponse.Results)
+		if err != nil {
+			return err
+		}
+		h.upsertResult = upsertResult
+		logger.WithField("upsert result", fmt.Sprintf("%+v", upsertResult)).Info("got events")
+		url = pullResponse.Next
 	}
-	body, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return err
-	}
-	var pullResponse pullResponse
-	err = json.Unmarshal(body, &pullResponse)
-	if err != nil {
-		return err
-	}
-	upsertResult, err := h.client.UpsertMany(ctx, pullResponse.Results)
-	if err != nil {
-		return err
-	}
-	h.upsertResult = upsertResult
-	logger.WithField("upsert result", upsertResult).Info("got events")
 	return nil
 }
 
-func New(ctx context.Context, client *repository.Client) *Handler {
+func New(client *repository.Client) *Handler {
 	handler := &Handler{client: client}
 	logger := log.WithFields(log.Fields{
 		"handler": "pullHandler",
 		"method":  "new",
 	})
 	ticker := time.NewTicker(time.Hour)
+	defer ticker.Stop()
 	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				log.WithError(ctx.Err()).Error(" received cancel from external context")
-				return
-			case <-ticker.C:
-				err := handler.makeRequest(ctx, logger.Logger)
-				if err != nil {
-					logger.WithError(err).Error()
-				}
-			default:
+		for ; ; <-ticker.C{
+			err := handler.makeRequest(context.Background(), logger.Logger)
+			if err != nil {
+				logger.WithError(err).Error()
 			}
 		}
 	}()

@@ -16,7 +16,7 @@ type Result struct {
 	TagLine         string           `json:"tagline" bson:"tagline"`
 	AgeRestriction  *json.RawMessage `json:"age_restriction" bson:"age_restriction"`
 	Price           string           `json:"price" bson:"price"`
-	SsFree          bool             `json:"is_free" bson:"is_free"`
+	IsFree          bool             `json:"is_free" bson:"is_free"`
 	Images          []Image          `json:"images" bson:"images"`
 	FavouritesCount int              `json:"favourites_count" bson:"favourites_count"`
 	CommentsCount   int              `json:"comments_count" bson:"comments_count"`
