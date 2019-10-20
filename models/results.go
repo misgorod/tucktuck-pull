@@ -1,6 +1,13 @@
 package models
 
-import "encoding/json"
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"time"
+)
 
 type Result struct {
 	Id              int              `json:"id" bson:"_id"`
@@ -104,4 +111,46 @@ type Date struct {
 	IsStartless  bool    `json:"is_startless" bson:"is_startless"`
 	//Schedules []interface{}
 	UsePlaceSchedule bool `json:"use_place_schedule" bson:"use_place_schedule"`
+}
+
+type UpsertResult struct {
+	MatchedCount  int64
+	ModifiedCount int64
+	UpsertedCount int64
+	UpsertedID    []string
+	LastTime      time.Time
+}
+
+func (c *Client) UpsertMany(ctx context.Context, results []Result) (UpsertResult, error) {
+	updateModels := make([]mongo.WriteModel, 0, len(results))
+	for _, result := range results {
+		model := mongo.NewUpdateOneModel().
+			SetFilter(
+				bson.D{{
+					"_id", result.Id,
+				}},
+			).
+			SetUpdate(
+				bson.D{
+					{"$set", result},
+				},
+			).
+			SetUpsert(true)
+		updateModels = append(updateModels, model)
+	}
+	bulkResult, err := c.BulkWrite(ctx, updateModels)
+	if err != nil {
+		return UpsertResult{}, err
+	}
+	upsertedID := make([]string, 0)
+	for _, id := range bulkResult.UpsertedIDs {
+		upsertedID = append(upsertedID, fmt.Sprintf("%+v", id))
+	}
+	return UpsertResult{
+		MatchedCount:  bulkResult.MatchedCount,
+		ModifiedCount: bulkResult.ModifiedCount,
+		UpsertedCount: bulkResult.UpsertedCount,
+		UpsertedID:    upsertedID,
+		LastTime:      time.Now(),
+	}, nil
 }
